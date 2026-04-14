@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storm Web - النسخة المحدثة</title>
+    <style>
+        /* CSS - التصميم المحدث */
+        :root {
+            --primary: #3b82f6;
+            --danger: #ef4444;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* واجهة الدخول */
+        #login-screen {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 300px;
+        }
+
+        input[type="password"], input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: none;
+            background: #334155;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        .show-pass {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            cursor: pointer;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        /* المنصة الرئيسية */
+        #main-platform { display: none; width: 95%; max-width: 1200px; padding: 20px; }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 10px;
+        }
+
+        .admin-controls {
+            display: none;
+            background: #064e3b;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .video-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        video { width: 100%; aspect-ratio: 16/9; background: #000; }
+
+        .video-info { padding: 15px; }
+
+        .delete-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <h2 style="color: var(--primary);">Storm Web</h2>
+        <input type="password" id="passInput" placeholder="كلمة المرور">
+        <span class="show-pass" onclick="togglePass()">👁 إظهار كلمة المرور</span>
+        <button onclick="login()" style="width: 100%;">دخول</button>
+    </div>
+
+    <div id="main-platform">
+        <div class="header">
+            <h1>Storm Web <span id="adminBadge" style="display:none; font-size:12px; background:red; padding:3px 7px; border-radius:5px;">ADMIN</span></h1>
+            <button onclick="location.reload()" style="background:#475569;">خروج</button>
+        </div>
+
+        <div id="adminPanel" class="admin-controls">
+            <h3>رفع فيديو جديد (قاعدة البيانات)</h3>
+            <input type="text" id="vTitle" placeholder="عنوان الفيديو">
+            <input type="file" id="vFile" accept="video/*">
+            <button onclick="uploadVideo()" style="background:#10b981;">نشر الفيديو</button>
+        </div>
+
+        <div class="video-grid" id="container"></div>
+    </div>
+
+    <script>
+        /* JS - المنطق البرمجي المحدث */
+        const ADMIN_CODE = "stu777dio";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzlh79dqjcW70gw-bExMm7425I6sOfO2J3luP3wYCQHbux6wOvFPwTz8apv1SC-qbDaXg/exec";
+        let isAdmin = false;
+
+        function togglePass() {
+            const p = document.getElementById("passInput");
+            p.type = p.type === "password" ? "text" : "password";
+        }
+
+        function login() {
+            const pass = document.getElementById("passInput").value;
+            if(!pass) return alert("أدخل كلمة المرور");
+
+            document.getElementById("login-screen").style.display = "none";
+            document.getElementById("main-platform").style.display = "block";
+
+            if(pass === ADMIN_CODE) {
+                isAdmin = true;
+                document.getElementById("adminBadge").style.display = "inline";
+                document.getElementById("adminPanel").style.display = "block";
+            }
+        }
+
+        async function uploadVideo() {
+            const title = document.getElementById("vTitle").value;
+            const file = document.getElementById("vFile").files[0];
+
+            if(!title || !file) return alert("يرجى اختيار ملف وكتابة عنوان");
+
+            const localURL = URL.createObjectURL(file);
+            addVideoToUI(title, localURL);
+
+            // إرسال البيانات لشيت غوغل
+            const data = { title: title, url: "File: " + file.name, date: new Date().toLocaleString() };
+            
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(data)
+            });
+
+            alert("تم الرفع بنجاح!");
+            document.getElementById("vTitle").value = "";
+            document.getElementById("vFile").value = "";
+        }
+
+        function addVideoToUI(title, url) {
+            const container = document.getElementById("container");
+            const card = document.createElement("div");
+            card.className = "video-card";
+            
+            let deleteBtn = isAdmin ? `<button class="delete-btn" onclick="this.parentElement.parentElement.remove()">حذف الفيديو</button>` : "";
+
+            card.innerHTML = `
+                <video controls src="${url}"></video>
+                <div class="video-info">
+                    <h4>${title}</h4>
+                    ${deleteBtn}
+                </div>
+            `;
+            container.insertBefore(card, container.firstChild);
+        }
+    </script>
+</body>
+</html>
